@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Free rev-share calculator for game teams | Dioba</title>
+<meta name="description" content="Split your game's revenue between everyone on a revenue share. Recoupment, caps and a statement for every person. Free, runs in your browser.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://dioba.app/calculator/">
+<meta property="og:title" content="Free rev-share calculator for game teams">
+<meta property="og:description" content="Splits, recoupment, caps and a statement for every person. Runs in your browser.">
+<meta property="og:image" content="https://dioba.app/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="../assets/fonts/bricolage-grotesque-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/atkinson-hyperlegible-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../assets/tokens.css">
+<script src="../assets/site.js"></script>
+<style>
+  .intro { padding: var(--s-5) 0 var(--s-6); display: flex; justify-content: space-between; align-items: flex-end; gap: var(--s-5); flex-wrap: wrap; }
+  .intro .h1 { margin-bottom: var(--s-3); }
+  .privacy-note { display: flex; gap: var(--s-2); align-items: center; font-size: var(--t-small); color: var(--ink-soft); max-width: 22rem; }
+  .privacy-note svg { flex: none; color: var(--primary); }
+
+  .step { margin-bottom: var(--s-5); }
+  .step-head { display: flex; gap: var(--s-4); align-items: baseline; margin-bottom: var(--s-1); }
+  .step-num { font: 800 1rem/1 var(--display); color: var(--surface); background: var(--ink); width: 28px; height: 28px; border-radius: 50%;
+              display: inline-flex; align-items: center; justify-content: center; flex: none; transform: translateY(4px); }
+  .hint { color: var(--ink-soft); font-size: var(--t-small); margin: 0 0 var(--s-4); max-width: 40rem; }
+  .step .hint { padding-left: 44px; }
+
+  .field { display: inline-flex; flex-direction: column; gap: var(--s-1); font-weight: 700; font-size: var(--t-small); }
+  .fields { display: flex; flex-wrap: wrap; gap: var(--s-4) var(--s-5); align-items: flex-end; }
+  .fields input[type=number] { width: 11rem; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: var(--s-2); border-bottom: 1px solid var(--rule); vertical-align: middle; }
+  th { font-size: var(--t-micro); color: var(--ink-soft); font-weight: 700; }
+  td input, td select { width: 100%; }
+  .num { text-align: right; }
+  .scroll { position: relative; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table.team { min-width: 680px; }
+  table.team select { min-width: 11rem; }
+  table.team td:nth-child(3) { width: 7rem; }
+  table.team td:nth-child(5) { width: 9rem; }
+  .remove { width: 44px; height: 44px; border: none; background: none; color: var(--ink-soft); font-size: 1.4rem; line-height: 1; cursor: pointer; border-radius: var(--r-sm); }
+  .remove:hover { color: var(--error); background: var(--paper); }
+  .row-actions { display: flex; gap: var(--s-3); flex-wrap: wrap; align-items: center; margin-top: var(--s-4); }
+  .warn { color: var(--error); font-weight: 700; font-size: var(--t-small); margin-top: var(--s-3); }
+  .warn:empty { display: none; }
+  .status { font-size: var(--t-small); color: var(--ink-soft); }
+
+  .months { display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: var(--s-3); }
+  .months label { display: flex; flex-direction: column; font-size: var(--t-small); font-weight: 700; color: var(--ink-soft); gap: var(--s-1); }
+
+  .results th, .results td { white-space: nowrap; }
+  .results tbody tr:hover { background: var(--paper); }
+  .results tfoot td { font-weight: 700; border-top: 2px solid var(--ink); border-bottom: none; }
+  .results .studio { color: var(--ink-soft); }
+
+  .st-pickers { display: flex; flex-wrap: wrap; gap: var(--s-4) var(--s-5); margin-bottom: var(--s-5); }
+  .st-paper { border: 1px solid var(--line); border-radius: var(--r-md); padding: var(--s-6); max-width: 40rem; }
+  .st-paper .brand { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--s-5); }
+  .st-paper .brand .wordmark { font-size: 1.25rem; }
+  .st-paper h3 { font: 700 1.3rem/1.2 var(--display); margin: 0 0 var(--s-1); }
+  .st-paper .who { color: var(--ink-soft); margin: 0 0 var(--s-5); }
+  .st-split { display: flex; height: 14px; gap: 3px; margin: 0 0 var(--s-2); }
+  .st-split div { border-radius: 3px; min-width: 3px; }
+  .st-split-key { font-size: var(--t-micro); color: var(--ink-soft); margin: 0 0 var(--s-5); }
+  .fine { font-size: var(--t-micro); color: var(--ink-soft); margin: var(--s-5) 0 0; }
+
+  .beta-strip { background: var(--ink); color: var(--on-dark); border-radius: var(--r-xl); padding: var(--s-6); display: flex; gap: var(--s-5); align-items: center; justify-content: space-between; flex-wrap: wrap; margin: var(--s-7) 0 var(--s-5); }
+  .beta-strip .h3 { color: #fff; font-size: 1.5rem; margin-bottom: var(--s-2); }
+  .beta-strip p { margin: 0; max-width: 40rem; color: var(--on-dark-soft); }
+
+  @media (max-width: 640px) {
+    .card { padding: var(--s-4); }
+    .step .hint { padding-left: 0; }
+    .st-paper { padding: var(--s-4); }
+    .beta-strip { padding: var(--s-5); }
+    .fields .field, .fields input[type=number], .fields select, .fields input[type=month] { width: 100%; }
+    .team-wrap { overflow: visible; }
+    table.team { min-width: 0; }
+    table.team thead { display: none; }
+    table.team, table.team tbody { display: block; }
+    table.team tr { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); padding: var(--s-4) 0; border-bottom: 1px solid var(--rule);  grid-template-areas: 'name role' 'share cap' 'starts starts' 'del del'; }
+    table.team td:nth-child(1) { grid-area: name; } table.team td:nth-child(2) { grid-area: role; }
+    table.team td:nth-child(3) { grid-area: share; } table.team td:nth-child(4) { grid-area: starts; }
+    table.team td:nth-child(5) { grid-area: cap; } table.team td:nth-child(6) { grid-area: del; }
+    table.team .remove { width: auto; padding: 0 var(--s-2); font-size: var(--t-small); font-weight: 700; display: inline-flex; align-items: center; gap: var(--s-1); }
+    table.team .remove::after { content: "Remove"; }
+    table.team td { display: flex; flex-direction: column; gap: var(--s-1); padding: 0; border: none; width: auto !important; text-align: left; }
+    table.team td::before { content: attr(data-label); font-size: var(--t-micro); font-weight: 700; color: var(--ink-soft); }
+    table.team td:last-child { justify-content: flex-end; align-items: flex-end; }
+    table.team td:last-child::before { content: none; }
+    table.team select { min-width: 0; }
+    .scroll-hint { display: block; }
+  }
+  .scroll-hint { display: none; font-size: var(--t-micro); color: var(--ink-soft); margin: var(--s-2) 0 0; }
+  @media print {
+    @page { margin: 18mm; }
+    body { background: #fff; }
+    body * { visibility: hidden; }
+    #stPaper, #stPaper * { visibility: visible; }
+    #stPaper { position: absolute; left: 0; top: 0; width: 100%; max-width: none; border: none; padding: 0; }
+    .st-split div { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="site-header">
+    <a class="wordmark" href="../" aria-label="Dioba home">diob<span>a</span></a>
+    <nav class="site-nav" aria-label="Main">
+      <a class="nav-link" href="../">How it works</a>
+      <a class="btn btn-sm" data-link="reserve" href="../#beta">Join the free beta</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="intro">
+      <div>
+        <h1 class="h1">Rev-share calculator</h1>
+        <p class="lead">Add your team and the money you received each month. See what everyone is owed, then send each person a clear statement.</p>
+      </div>
+      <p class="privacy-note"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Your numbers are saved only in this browser. Nothing is sent anywhere.</p>
+    </div>
+
+    <section class="card step" aria-labelledby="settings-h">
+      <div class="step-head"><span class="step-num" aria-hidden="true">1</span><h2 class="h3" id="settings-h">Advance and currency</h2></div>
+      <p class="hint">The advance, or your own costs, that gets paid back from revenue before "after recoupment" shares start. Put 0 if there is none.</p>
+      <div class="fields">
+        <label class="field">Amount to recoup <input id="advance" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"></label>
+        <label class="field">Currency
+          <select id="currency"><option value="€">€ Euro</option><option value="$">$ Dollar</option><option value="£">£ Pound</option></select>
+        </label>
+        <label class="field">First month <input id="startMonth" type="month"></label>
+      </div>
+      <div class="row-actions">
+        <button class="btn btn-sm" id="loadExample" type="button">Load example</button>
+        <button class="btn btn-sm" id="clearAll" type="button">Start empty</button>
+        <span class="status" id="status" role="status" aria-live="polite"></span>
+      </div>
+    </section>
+
+    <section class="card step" aria-labelledby="team-h">
+      <div class="step-head"><span class="step-num" aria-hidden="true">2</span><h2 class="h3" id="team-h">Who gets a share</h2></div>
+      <p class="hint" id="teamHint">"From first euro" shares are paid on all revenue. "After recoupment" shares start once the advance is paid back. Leave the cap empty for no limit.</p>
+      <div class="scroll team-wrap">
+        <table class="team">
+          <thead><tr><th>Name</th><th>Role</th><th class="num">Share %</th><th>Share starts</th><th class="num">Cap</th><th><span class="sr-only">Remove</span></th></tr></thead>
+          <tbody id="teamBody"></tbody>
+        </table>
+      </div>
+      <div class="row-actions"><button class="btn btn-sm" id="addPerson" type="button">Add person</button></div>
+      <div id="shareWarn" class="warn" role="status"></div>
+    </section>
+
+    <section class="card step" aria-labelledby="rev-h">
+      <div class="step-head"><span class="step-num" aria-hidden="true">3</span><h2 class="h3" id="rev-h">Revenue received</h2></div>
+      <p class="hint">The money that actually reached you each month, after the store's fee, refunds and VAT.</p>
+      <div class="months" id="months"></div>
+      <div class="row-actions">
+        <button class="btn btn-sm" id="addMonth" type="button">Add month</button>
+        <button class="btn btn-sm" id="removeMonth" type="button">Remove last month</button>
+      </div>
+    </section>
+
+    <section class="card step" aria-labelledby="pay-h">
+      <div class="step-head"><span class="step-num" aria-hidden="true">4</span><h2 class="h3" id="pay-h">What everyone is owed</h2></div>
+      <p class="hint">Worked out from steps 1 to 3. Nothing to type here.</p>
+      <div class="scroll" tabindex="0" role="region" aria-label="Payouts per month"><table class="results" id="results"></table></div>
+      <p class="scroll-hint" aria-hidden="true">Swipe the table sideways to see everyone.</p>
+      <div class="row-actions"><button class="btn btn-sm" id="csv" type="button">Download CSV</button></div>
+    </section>
+
+    <section class="card step" aria-labelledby="st-h">
+      <div class="step-head"><span class="step-num" aria-hidden="true">5</span><h2 class="h3" id="st-h">Statements</h2></div>
+      <p class="hint">Pick a person and a month, then save it as a PDF and send it to them.</p>
+      <div class="st-pickers">
+        <label class="field">Person <select id="stPerson"></select></label>
+        <label class="field">Month <select id="stMonth"></select></label>
+      </div>
+      <div class="st-paper" id="stPaper"></div>
+      <div class="row-actions"><button class="btn btn-primary" id="print" type="button">Save as PDF or print</button></div>
+    </section>
+
+    <section class="beta-strip on-dark" aria-labelledby="beta-h">
+      <div>
+        <h2 class="h3" id="beta-h">Want this to update itself?</h2>
+        <p>The Dioba beta pulls your Steam sales every day and keeps every statement current. Free during the beta. The first 10 studios keep €99 a year for life.</p>
+      </div>
+      <a class="btn btn-accent" data-link="reserve" href="../#beta">Reserve a founding spot</a>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <nav aria-label="Footer">
+      <a href="../">Home</a>
+      <a data-link="download" href="../#ways">Google Sheet version</a>
+      <a href="../privacy.html">Privacy</a>
+      <a href="../terms.html">Terms</a>
+      <a data-link="email" href="mailto:hello@dioba.app">Contact</a>
+    </nav>
+    <p>Dioba is not affiliated with or endorsed by Valve Corporation. Steam is a trademark of Valve Corporation.</p>
+    <p>Dioba calculates from the numbers and contract settings you enter. It is not legal, tax or financial advice.</p>
+  </footer>
+</div>
+
+<script src="engine.js"></script>
+<script>
+(function () {
+  var KEY = 'dioba-calc-v1';
+  var state;
+
+  function blank() {
+    var d = new Date();
+    return { advance: 0, currency: '€', startMonth: d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'),
+             team: [{ name: '', role: '', share: 0.1, starts: 'first', cap: null }], revenue: [0, 0, 0] };
+  }
+  function load() {
+    try { var s = JSON.parse(localStorage.getItem(KEY)); if (s && s.team && s.revenue) return s; } catch (e) {}
+    return DiobaEngine.exampleInput();
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function monthLabel(i) {
+    var parts = String(state.startMonth || '2026-01').split('-');
+    var y = parseInt(parts[0], 10) || 2026, mo = (parseInt(parts[1], 10) || 1) - 1 + i;
+    y += Math.floor(mo / 12); mo = ((mo % 12) + 12) % 12;
+    return MONTHS[mo] + ' ' + y;
+  }
+  function money(x) {
+    var v = Math.abs(x) < 0.005 ? 0 : x;
+    return state.currency + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  var UNIT = { '€': 'euro', '$': 'dollar', '£': 'pound' };
+  function firstLabel() { return 'From first ' + (UNIT[state.currency] || 'euro'); }
+  function personName(p, i) { return (p.name && p.name.trim()) || 'Person ' + (i + 1); }
+  function el(tag, attrs, text) {
+    var e = document.createElement(tag);
+    for (var k in (attrs || {})) { if (k === 'class') e.className = attrs[k]; else e.setAttribute(k, attrs[k]); }
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  function renderInputs() {
+    document.getElementById('advance').value = state.advance || '';
+    document.getElementById('currency').value = state.currency;
+    document.getElementById('startMonth').value = state.startMonth;
+    var tb = document.getElementById('teamBody'); tb.innerHTML = '';
+    state.team.forEach(function (p, i) {
+      var tr = el('tr');
+      var name = el('input', { type: 'text', 'aria-label': 'Name', placeholder: 'Name', value: p.name || '' });
+      var role = el('input', { type: 'text', 'aria-label': 'Role', placeholder: 'e.g. Composer', value: p.role || '' });
+      var share = el('input', { 'aria-label': 'Share %', type: 'number', min: '0', max: '100', step: '0.1', inputmode: 'decimal',
+                                 value: p.share ? +(p.share * 100).toFixed(4) : '' });
+      var starts = el('select', { 'aria-label': 'Share starts' });
+      [['first', firstLabel()], ['after', 'After recoupment']].forEach(function (o) {
+        var opt = el('option', { value: o[0] }, o[1]); if (p.starts === o[0]) opt.selected = true; starts.appendChild(opt);
+      });
+      var cap = el('input', { 'aria-label': 'Cap', type: 'number', min: '0', step: '0.01', inputmode: 'decimal', placeholder: 'No cap',
+                               value: p.cap === null || p.cap === undefined ? '' : p.cap });
+      var del = el('button', { class: 'remove', type: 'button', 'aria-label': 'Remove ' + personName(p, i), title: 'Remove' }, '×');
+      name.oninput = function () { p.name = name.value; del.setAttribute('aria-label', 'Remove ' + personName(p, i)); update(); };
+      role.oninput = function () { p.role = role.value; update(); };
+      share.oninput = function () { p.share = (parseFloat(share.value) || 0) / 100; update(); };
+      starts.onchange = function () { p.starts = starts.value; update(); };
+      cap.oninput = function () { p.cap = cap.value === '' ? null : parseFloat(cap.value) || 0; update(); };
+      del.onclick = function () { state.team.splice(i, 1); renderInputs(); update(); };
+      var LABELS = ['Name', 'Role', 'Share %', 'Share starts', 'Cap', ''];
+      [name, role, share, starts, cap, del].forEach(function (c, j) {
+        var td = el('td', { 'data-label': LABELS[j] }); if (j === 2 || j === 4) td.className = 'num';
+        td.appendChild(c); tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+    renderMonths();
+  }
+
+  function renderMonths() {
+    var box = document.getElementById('months'); box.innerHTML = '';
+    state.revenue.forEach(function (v, i) {
+      var lab = el('label', {}, monthLabel(i));
+      var inp = el('input', { type: 'number', min: '0', step: '0.01', inputmode: 'decimal', value: v || '' });
+      inp.oninput = function () { state.revenue[i] = parseFloat(inp.value) || 0; update(); };
+      lab.appendChild(inp); box.appendChild(lab);
+    });
+  }
+
+  function update() {
+    save();
+    document.getElementById('teamHint').textContent = '"' + firstLabel() + '" shares are paid on all revenue. "After recoupment" shares start once the advance is paid back. Leave the cap empty for no limit.';
+    var r = DiobaEngine.compute(state);
+    var warn = document.getElementById('shareWarn');
+    warn.textContent = r.totals.overAllocated ? 'Shares add up to ' + Math.round(r.totals.shareTotal * 100) + '%, which is more than 100%.' : '';
+
+    // Results table
+    var t = document.getElementById('results'); t.innerHTML = '';
+    var thead = el('thead'), hr = el('tr');
+    ['Month', 'Revenue', 'Recouped'].concat(r.team.map(personName)).concat(['Left for studio'])
+      .forEach(function (h, i) { hr.appendChild(el('th', i ? { class: 'num' } : {}, h)); });
+    thead.appendChild(hr); t.appendChild(thead);
+    var tb = el('tbody');
+    r.months.forEach(function (m) {
+      var tr = el('tr');
+      [monthLabel(m.index), money(m.revenue), money(m.recouped)]
+        .concat(m.payouts.map(function (p) { return money(p.amount); })).concat([money(m.studio)])
+        .forEach(function (v, i, all) { tr.appendChild(el('td', i ? { class: 'num' + (i === all.length - 1 ? ' studio' : '') } : {}, v)); });
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb);
+    var tf = el('tfoot'), fr = el('tr');
+    var recTotal = r.months.reduce(function (s, m) { return s + m.recouped; }, 0);
+    ['Total', money(r.totals.revenue), money(recTotal)].concat(r.totals.perPerson.map(money)).concat([money(r.totals.studio)])
+      .forEach(function (v, i) { fr.appendChild(el('td', i ? { class: 'num' } : {}, v)); });
+    tf.appendChild(fr); t.appendChild(tf);
+
+    renderStatementPickers(r);
+    renderStatement(r);
+  }
+
+  function renderStatementPickers(r) {
+    var ps = document.getElementById('stPerson'), ms = document.getElementById('stMonth');
+    var pv = ps.value, mv = ms.value;
+    ps.innerHTML = ''; ms.innerHTML = '';
+    r.team.forEach(function (p, i) { ps.appendChild(el('option', { value: i }, personName(p, i))); });
+    r.months.forEach(function (m) { ms.appendChild(el('option', { value: m.index }, monthLabel(m.index))); });
+    if (pv !== '' && +pv < r.team.length) ps.value = pv;
+    ms.value = mv !== '' && +mv < r.months.length ? mv : String(Math.max(0, r.months.length - 1));
+  }
+
+  function round2(x) { return Math.round((x + Number.EPSILON) * 100) / 100; }
+  function renderStatement(r) {
+    var box = document.getElementById('stPaper'); box.innerHTML = '';
+    var pi = +document.getElementById('stPerson').value, mi = +document.getElementById('stMonth').value;
+    if (!r.team.length || !r.months.length) { box.appendChild(el('p', { class: 'hint' }, 'Add a person in step 2 and a month in step 3 to see a statement.')); return; }
+    var p = r.team[pi], m = r.months[mi], po = m.payouts[pi];
+    var brand = el('div', { class: 'brand' });
+    var wm = el('span', { class: 'wordmark' }, 'diob'); wm.appendChild(el('span', {}, 'a'));
+    brand.appendChild(wm); brand.appendChild(el('span', { class: 'small' }, monthLabel(mi)));
+    box.appendChild(brand);
+    box.appendChild(el('h3', {}, 'Revenue-share statement, ' + monthLabel(mi)));
+    var who = personName(p, pi) + (p.role ? ', ' + p.role : '') + ', ' + +(p.share * 100).toFixed(2) + '% ' +
+              (p.starts === 'after' ? 'after recoupment' : firstLabel().toLowerCase());
+    box.appendChild(el('p', { class: 'who' }, who));
+
+    // Where this month's money went
+    if (m.revenue > 0) {
+      var bar = el('div', { class: 'st-split', role: 'img' });
+      // Only this person's amount is shown. Everyone else is combined, so a statement never reveals a colleague's pay.
+      var parts = [];
+      if (m.recouped > 0) parts.push(['Advance paid back', m.recouped, '#1A2740']);
+      if (po.amount > 0) parts.push(['You', po.amount, '#22797A']);
+      var others = round2(m.revenue - m.recouped - po.amount);
+      if (others > 0) parts.push(['Everyone else', others, '#C9D1DD']);
+      parts.forEach(function (q) {
+        var d = el('div'); d.style.flex = String(q[1]); d.style.background = q[2];
+        bar.appendChild(d);
+      });
+      bar.setAttribute('aria-label', 'This month: ' + parts.map(function (q) { return q[0] + ' ' + money(q[1]); }).join(', '));
+      box.appendChild(bar);
+      box.appendChild(el('p', { class: 'st-split-key' }, 'Where this month\'s ' + money(m.revenue) + ' went: ' + parts.map(function (q) { return q[0].toLowerCase() + ' ' + money(q[1]); }).join(', ') + '.'));
+    }
+
+    var rows = [
+      ['Revenue received this month', money(m.revenue)],
+      ['Your share is calculated on', money(po.base)],
+      ['Payable to you this month', money(po.amount), 'pay'],
+      ['Paid to you so far', money(po.paidSoFar)],
+      ['Cap left', po.capLeft === null ? 'No cap' : money(po.capLeft)],
+      ['Advance still to recoup', money(m.leftToRecoup)]
+    ];
+    rows.forEach(function (row) {
+      var d = el('div', { class: 'statement-row' + (row[2] ? ' ' + row[2] : '') });
+      d.appendChild(el('span', {}, row[0])); d.appendChild(el('span', {}, row[1])); box.appendChild(d);
+    });
+    box.appendChild(el('p', { class: 'fine' }, 'Calculated from the revenue and contract settings entered by the studio. Not legal, tax or financial advice. Made with the free Dioba calculator at dioba.app.'));
+  }
+
+  function csv() {
+    var r = DiobaEngine.compute(state);
+    var lines = [['Month', 'Revenue', 'Recouped', 'Available to split'].concat(r.team.map(personName)).concat(['Left for studio'])];
+    r.months.forEach(function (m) {
+      lines.push([monthLabel(m.index), m.revenue, m.recouped, m.available].concat(m.payouts.map(function (p) { return p.amount; })).concat([m.studio]));
+    });
+    var text = lines.map(function (l) { return l.map(function (c) { var s = String(c); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }).join(','); }).join('\n');
+    var a = el('a', { href: URL.createObjectURL(new Blob([text], { type: 'text/csv' })), download: 'dioba-payouts.csv' });
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  document.getElementById('advance').oninput = function (e) { state.advance = parseFloat(e.target.value) || 0; update(); };
+  document.getElementById('currency').onchange = function (e) { state.currency = e.target.value; renderInputs(); update(); };
+  document.getElementById('startMonth').oninput = function (e) { state.startMonth = e.target.value; renderMonths(); update(); };
+  document.getElementById('addPerson').onclick = function () { state.team.push({ name: '', role: '', share: 0, starts: 'after', cap: null }); renderInputs(); update(); };
+  document.getElementById('addMonth').onclick = function () { state.revenue.push(0); renderMonths(); update(); };
+  document.getElementById('removeMonth').onclick = function () { if (state.revenue.length > 1) { state.revenue.pop(); renderMonths(); update(); } };
+  document.getElementById('loadExample').onclick = function () { undoState = JSON.parse(JSON.stringify(state)); state = DiobaEngine.exampleInput(); renderInputs(); update(); setStatus('Example loaded.', true); };
+  var statusEl = document.getElementById('status'), undoState = null;
+  function setStatus(msg, undo) {
+    statusEl.innerHTML = ''; statusEl.appendChild(document.createTextNode(msg));
+    if (undo) {
+      var b = el('button', { class: 'btn-quiet btn', type: 'button' }, 'Undo');
+      b.onclick = function () { state = undoState; undoState = null; renderInputs(); update(); setStatus('Restored.'); };
+      statusEl.appendChild(document.createTextNode(' ')); statusEl.appendChild(b);
+    }
+  }
+  document.getElementById('clearAll').onclick = function () { undoState = JSON.parse(JSON.stringify(state)); state = blank(); renderInputs(); update(); setStatus('Started empty.', true); };
+  document.getElementById('stPerson').onchange = function () { renderStatement(DiobaEngine.compute(state)); };
+  document.getElementById('stMonth').onchange = function () { renderStatement(DiobaEngine.compute(state)); };
+  document.getElementById('print').onclick = function () { window.print(); };
+  document.getElementById('csv').onclick = csv;
+
+  state = load();
+  renderInputs();
+  update();
+})();
+</script>
+</body>
+</html>
