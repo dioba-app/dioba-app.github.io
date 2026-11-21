@@ -4,7 +4,7 @@
 var LINKS = {
   download: 'https://docs.google.com/forms/d/e/1FAIpQLSdmkvRK4De76SSM5qLAhP_gMtjqZ52sU_YuRro4MiieJv_djQ/viewform',      // Google Form: "Get the free Dioba Rev-Share Calculator"
   reserve:  'https://docs.google.com/forms/d/e/1FAIpQLSdpxrUon5rGOvNQc1cNCPMiDYmcLWiIUJ3HKNJ19Cbf06XjMg/viewform',   // Google Form: "Reserve a founding spot in the Dioba beta"
-  email:    'dioba.app@gmail.com'      // switch to 'hello@dioba.app' once the Namecheap forwarder works
+  email:    'hello@dioba.app'
 };
 /* ===================================================================== */
 
