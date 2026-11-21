@@ -339,7 +339,7 @@
     if (!r.team.length || !r.months.length) { box.appendChild(el('p', { class: 'hint' }, 'Add a person in step 2 and a month in step 3 to see a statement.')); return; }
     var p = r.team[pi], m = r.months[mi], po = m.payouts[pi];
     var brand = el('div', { class: 'brand' });
-    var wm = el('img', { src: '../assets/logo.svg', alt: 'Dioba', class: 'st-logo', width: '315', height: '86' });
+    var wm = el('img', { src: '../assets/logo.svg', alt: 'Dioba', class: 'st-logo', width: '318', height: '92' });
     brand.appendChild(wm); brand.appendChild(el('span', { class: 'small' }, monthLabel(mi)));
     box.appendChild(brand);
     box.appendChild(el('h3', {}, 'Revenue-share statement, ' + monthLabel(mi)));
