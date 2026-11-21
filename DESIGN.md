@@ -70,3 +70,9 @@ Lines stay under 70 characters (`--measure: 36rem`). Sentence case everywhere; n
 ## Imagery and icons
 
 No stock photos, no illustrations of people. The product itself is the imagery: the split bar and real statement UI with example numbers. Icons only when they carry meaning, drawn inline as simple 1.5px-stroke SVG. No emoji.
+
+## Logo
+
+- `assets/logo.svg` (ink text) and `assets/logo-white.svg` (for dark backgrounds). The "d" and "a" are circles divided into three shares (saffron, teal, slate) with a plum stem: dioba means "dividing into shares".
+- `assets/favicon.svg` is the icon: the divided "d" on an ink tile. `apple-touch-icon.png` is the same at 180px.
+- Header height 34px (28px on phones). Never recolour, stretch or add effects. Keep clear space of at least half the logo's height around it.

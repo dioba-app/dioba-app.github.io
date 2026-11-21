@@ -113,9 +113,8 @@ input:hover, select:hover { border-color: var(--ink-soft); }
 
 /* Site header and footer */
 .site-header { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); padding: var(--s-5) 0; }
-.wordmark { font: 800 1.75rem/1 var(--display); letter-spacing: -0.03em; text-decoration: none; color: var(--ink); }
-.wordmark span { color: var(--primary); }
-.wordmark:hover { color: var(--ink); }
+.wordmark { display: inline-flex; align-items: center; min-height: 44px; }
+.wordmark img { height: 34px; width: auto; }
 .site-nav { display: flex; align-items: center; gap: var(--s-5); }
 .site-nav a.nav-link { font-weight: 700; text-decoration: none; }
 .site-nav a.nav-link:hover { text-decoration: underline; }
@@ -126,6 +125,7 @@ input:hover, select:hover { border-color: var(--ink-soft); }
 
 @media (max-width: 640px) {
   .site-nav a.nav-link { display: none; }
+  .wordmark img { height: 28px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
