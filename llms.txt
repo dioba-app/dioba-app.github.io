@@ -1,0 +1,10 @@
+# Dioba
+
+> Dioba is a free revenue-share calculator for indie game teams. It splits a game's monthly revenue between team members (composers, artists, co-developers, publishers) by percentage, handles advance recoupment and payout caps, and creates a statement for each person.
+
+- [Rev-share calculator](https://dioba.app/calculator/): free, runs in the browser, no account. Data stays on the user's device.
+- [How it works, with a worked example](https://dioba.app/): "from first euro" vs "after recoupment" shares, caps, and statements.
+- Google Sheet version: same rules as a spreadsheet for Google Sheets, Excel and LibreOffice.
+- Automated Steam sync: in free beta.
+
+Made by a solo developer in Croatia. Contact: hello@dioba.app. Not legal, tax or financial advice.
