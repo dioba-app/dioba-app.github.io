@@ -40,3 +40,38 @@ assert.strictEqual(o.totals.overAllocated, true);
 assert.strictEqual(E.round2(1.005), 1.01);
 
 console.log('engine tests: all passed');
+
+// ---- Flat pay ----
+// Example: Luka is on a one-time €1,500 flat fee only. Shares are unchanged; the fee shows up front.
+assert.strictEqual(r.upfront[3], 1500);
+assert.strictEqual(r.totals.flatPerPerson[3], 1500);
+assert.strictEqual(r.totals.perPerson[3], 0);
+assert.strictEqual(m[7].studio, 2600);                               // August unchanged
+assert.strictEqual(r.totals.studio, 22200 - 2220 - 1830 - 3050 - 1500); // months kept by studio minus upfront fee
+
+// Monthly flat pay on top of a share: Marko gets €100 every month plus 15% after recoupment
+const mon = E.exampleInput(); mon.team[1].flat = 100; mon.team[1].flatWhen = 'monthly';
+const mr = E.compute(mon);
+assert.deepStrictEqual(mr.months.map(x => x.payouts[1].total), [100, 100, 100, 340, 490, 325, 295, 880]);
+assert.strictEqual(mr.months[0].payouts[1].amount, 0);
+assert.strictEqual(mr.months[7].payouts[1].paidSoFar, 1830 + 800);
+assert.strictEqual(mr.months[7].studio, 2600 - 100);
+
+// Flat pay doesn't count toward a cap: Ana capped at 1,000 with €50/month still gets her €50
+const capFlat = E.exampleInput(); capFlat.team[0].cap = 1000; capFlat.team[0].flat = 50; capFlat.team[0].flatWhen = 'monthly';
+const cf = E.compute(capFlat);
+assert.deepStrictEqual(cf.months.map(x => x.payouts[0].amount), [420, 310, 250, 20, 0, 0, 0, 0]);
+assert.strictEqual(cf.months[7].payouts[0].total, 50);
+
+// Recouping one-time flat fees: €10,000 advance + €1,500 fee = €11,500 to recoup
+const rec = E.exampleInput(); rec.recoupFlat = true;
+const rr = E.compute(rec);
+assert.strictEqual(rr.advance, 11500);
+assert.deepStrictEqual(rr.months.map(x => x.recouped), [4200, 3100, 2500, 1700, 0, 0, 0, 0]);
+assert.strictEqual(rr.months[3].payouts[1].amount, 15);             // 15% of the €100 left in April
+
+// Flat pay only (0% share, no name of the flat-pay fields set) keeps old saved data working
+const old = { advance: 0, team: [{ name: 'A', share: 0.5, starts: 'first' }], revenue: [100] };
+assert.strictEqual(E.compute(old).months[0].payouts[0].total, 50);
+
+console.log('flat pay tests: all passed');

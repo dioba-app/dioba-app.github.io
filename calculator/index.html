@@ -23,7 +23,7 @@
 <link rel="preload" href="../assets/fonts/bricolage-grotesque-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/atkinson-hyperlegible-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../assets/tokens.css">
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "Dioba Rev-Share Calculator", "url": "https://dioba.app/calculator/", "applicationCategory": "FinanceApplication", "operatingSystem": "Any (runs in the browser)", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"}, "description": "Free revenue-share calculator for indie game teams. Splits monthly game revenue between team members by percentage, handles advance recoupment and payout caps, and creates a statement for each person.", "featureList": ["Percentage splits for every team member", "From first euro or after recoupment", "Advance and cost recoupment", "Payout caps", "Per-person monthly statements as PDF", "CSV export", "Data stays in the browser"], "publisher": {"@type": "Organization", "name": "Dioba", "url": "https://dioba.app/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "Dioba Rev-Share Calculator", "url": "https://dioba.app/calculator/", "applicationCategory": "FinanceApplication", "operatingSystem": "Any (runs in the browser)", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"}, "description": "Free revenue-share calculator for indie game teams. Splits monthly game revenue between team members by percentage, handles advance recoupment and payout caps, and creates a statement for each person.", "featureList": ["Percentage splits for every team member", "From first euro or after recoupment", "Advance and cost recoupment", "Payout caps","Flat pay (one-time or monthly) on its own or with a share", "Per-person monthly statements as PDF", "CSV export", "Data stays in the browser"], "publisher": {"@type": "Organization", "name": "Dioba", "url": "https://dioba.app/"}}</script>
 <script src="../assets/site.js"></script>
 <style>
   .intro { padding: var(--s-5) 0 var(--s-6); display: flex; justify-content: space-between; align-items: flex-end; gap: var(--s-5); flex-wrap: wrap; }
@@ -48,10 +48,15 @@
   td input, td select { width: 100%; }
   .num { text-align: right; }
   .scroll { position: relative; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  table.team { min-width: 680px; }
-  table.team select { min-width: 11rem; }
-  table.team td:nth-child(3) { width: 7rem; }
-  table.team td:nth-child(5) { width: 9rem; }
+  table.team { min-width: 940px; table-layout: fixed; }
+  table.team th:nth-child(3) { width: 6rem; } table.team th:nth-child(4) { width: 12.75rem; }
+  table.team th:nth-child(5) { width: 7.25rem; } table.team th:nth-child(6) { width: 7.25rem; }
+  table.team th:nth-child(7) { width: 9rem; } table.team th:nth-child(8) { width: 52px; }
+  .check { display: flex; gap: var(--s-3); align-items: flex-start; margin-top: var(--s-4); font-size: var(--t-small); max-width: 44rem; cursor: pointer; }
+  .check input { width: 20px; height: 20px; margin: 2px 0 0; flex: none; accent-color: var(--primary); }
+  .check[hidden] { display: none; }
+  .results td small { display: block; font-size: var(--t-micro); color: var(--ink-soft); }
+  .results tr.upfront td { color: var(--ink-soft); font-style: italic; }
   .remove { width: 44px; height: 44px; border: none; background: none; color: var(--ink-soft); font-size: 1.4rem; line-height: 1; cursor: pointer; border-radius: var(--r-sm); }
   .remove:hover { color: var(--error); background: var(--paper); }
   .row-actions { display: flex; gap: var(--s-3); flex-wrap: wrap; align-items: center; margin-top: var(--s-4); }
@@ -95,13 +100,14 @@
     .beta-strip { padding: var(--s-5); }
     .fields .field, .fields input[type=number], .fields select, .fields input[type=month] { width: 100%; }
     .team-wrap { overflow: visible; }
-    table.team { min-width: 0; }
+    table.team { min-width: 0; table-layout: auto; }
     table.team thead { display: none; }
     table.team, table.team tbody { display: block; }
-    table.team tr { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); padding: var(--s-4) 0; border-bottom: 1px solid var(--rule);  grid-template-areas: 'name role' 'share cap' 'starts starts' 'del del'; }
+    table.team tr { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); padding: var(--s-4) 0; border-bottom: 1px solid var(--rule);  grid-template-areas: 'name role' 'share cap' 'starts starts' 'flat flatwhen' 'del del'; }
     table.team td:nth-child(1) { grid-area: name; } table.team td:nth-child(2) { grid-area: role; }
     table.team td:nth-child(3) { grid-area: share; } table.team td:nth-child(4) { grid-area: starts; }
-    table.team td:nth-child(5) { grid-area: cap; } table.team td:nth-child(6) { grid-area: del; }
+    table.team td:nth-child(5) { grid-area: cap; } table.team td:nth-child(6) { grid-area: flat; }
+    table.team td:nth-child(7) { grid-area: flatwhen; } table.team td:nth-child(8) { grid-area: del; }
     table.team .remove { width: auto; padding: 0 var(--s-2); font-size: var(--t-small); font-weight: 700; display: inline-flex; align-items: center; gap: var(--s-1); }
     table.team .remove::after { content: "Remove"; }
     table.team td { display: flex; flex-direction: column; gap: var(--s-1); padding: 0; border: none; width: auto !important; text-align: left; }
@@ -159,15 +165,16 @@
     </section>
 
     <section class="card step" aria-labelledby="team-h">
-      <div class="step-head"><span class="step-num" aria-hidden="true">2</span><h2 class="h3" id="team-h">Who gets a share</h2></div>
+      <div class="step-head"><span class="step-num" aria-hidden="true">2</span><h2 class="h3" id="team-h">Who gets paid</h2></div>
       <p class="hint" id="teamHint">"From first euro" shares are paid on all revenue. "After recoupment" shares start once the advance is paid back. Leave the cap empty for no limit.</p>
       <div class="scroll team-wrap">
         <table class="team">
-          <thead><tr><th>Name</th><th>Role</th><th class="num">Share %</th><th>Share starts</th><th class="num">Cap</th><th><span class="sr-only">Remove</span></th></tr></thead>
+          <thead><tr><th>Name</th><th>Role</th><th class="num">Share %</th><th>Share starts</th><th class="num">Cap</th><th class="num">Flat pay</th><th>Flat pay paid</th><th><span class="sr-only">Remove</span></th></tr></thead>
           <tbody id="teamBody"></tbody>
         </table>
       </div>
       <div class="row-actions"><button class="btn btn-sm" id="addPerson" type="button">Add person</button></div>
+      <label class="check" id="recoupFlatWrap" hidden><input type="checkbox" id="recoupFlat"> <span>The studio gets one-time flat fees back from revenue first. They're added to the amount to recoup, so "after recoupment" shares start later.</span></label>
       <div id="shareWarn" class="warn" role="status"></div>
     </section>
 
@@ -216,6 +223,10 @@
           <p>A cap is the most a person can be paid in total. The calculator tracks what each person has been paid so far and stops their share when they reach it.</p>
         </div>
         <div>
+          <h3 class="h3">Flat pay</h3>
+          <p>Some people get a fixed fee instead of, or on top of, a share. Add it as a one-time fee paid upfront or as an amount paid every month. The studio can also get one-time fees back from revenue first, like an advance.</p>
+        </div>
+        <div>
           <h3 class="h3">Statements</h3>
           <p>For each person and month you get a statement: revenue received, the amount their share is based on, what they're owed, what they've been paid so far and how much of their cap is left.</p>
         </div>
@@ -254,7 +265,7 @@
   function blank() {
     var d = new Date();
     return { advance: 0, currency: '€', startMonth: d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'),
-             team: [{ name: '', role: '', share: 0.1, starts: 'first', cap: null }], revenue: [0, 0, 0] };
+             team: [{ name: '', role: '', share: 0.1, starts: 'first', cap: null, flat: null, flatWhen: 'once' }], revenue: [0, 0, 0], recoupFlat: false };
   }
   function load() {
     try { var s = JSON.parse(localStorage.getItem(KEY)); if (s && s.team && s.revenue) return s; } catch (e) {}
@@ -271,7 +282,7 @@
   }
   function money(x) {
     var v = Math.abs(x) < 0.005 ? 0 : x;
-    return state.currency + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return (v < 0 ? '\u2212' : '') + state.currency + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
   var UNIT = { '€': 'euro', '$': 'dollar', '£': 'pound' };
   function firstLabel() { return 'From first ' + (UNIT[state.currency] || 'euro'); }
@@ -300,16 +311,24 @@
       });
       var cap = el('input', { 'aria-label': 'Cap', type: 'number', min: '0', step: '0.01', inputmode: 'decimal', placeholder: 'No cap',
                                value: p.cap === null || p.cap === undefined ? '' : p.cap });
+      var flat = el('input', { 'aria-label': 'Flat pay', type: 'number', min: '0', step: '0.01', inputmode: 'decimal', placeholder: 'None',
+                                value: p.flat === null || p.flat === undefined || p.flat === 0 ? '' : p.flat });
+      var flatWhen = el('select', { 'aria-label': 'Flat pay paid' });
+      [['once', 'One-time'], ['monthly', 'Monthly']].forEach(function (o) {
+        var opt = el('option', { value: o[0] }, o[1]); if ((p.flatWhen || 'once') === o[0]) opt.selected = true; flatWhen.appendChild(opt);
+      });
       var del = el('button', { class: 'remove', type: 'button', 'aria-label': 'Remove ' + personName(p, i), title: 'Remove' }, '×');
       name.oninput = function () { p.name = name.value; del.setAttribute('aria-label', 'Remove ' + personName(p, i)); update(); };
       role.oninput = function () { p.role = role.value; update(); };
       share.oninput = function () { p.share = (parseFloat(share.value) || 0) / 100; update(); };
       starts.onchange = function () { p.starts = starts.value; update(); };
       cap.oninput = function () { p.cap = cap.value === '' ? null : parseFloat(cap.value) || 0; update(); };
+      flat.oninput = function () { p.flat = flat.value === '' ? null : parseFloat(flat.value) || 0; update(); };
+      flatWhen.onchange = function () { p.flatWhen = flatWhen.value; update(); };
       del.onclick = function () { state.team.splice(i, 1); renderInputs(); update(); };
-      var LABELS = ['Name', 'Role', 'Share %', 'Share starts', 'Cap', ''];
-      [name, role, share, starts, cap, del].forEach(function (c, j) {
-        var td = el('td', { 'data-label': LABELS[j] }); if (j === 2 || j === 4) td.className = 'num';
+      var LABELS = ['Name', 'Role', 'Share %', 'Share starts', 'Cap', 'Flat pay', 'Flat pay paid', ''];
+      [name, role, share, starts, cap, flat, flatWhen, del].forEach(function (c, j) {
+        var td = el('td', { 'data-label': LABELS[j] }); if (j === 2 || j === 4 || j === 5) td.className = 'num';
         td.appendChild(c); tr.appendChild(td);
       });
       tb.appendChild(tr);
@@ -329,8 +348,11 @@
 
   function update() {
     save();
-    document.getElementById('teamHint').textContent = '"' + firstLabel() + '" shares are paid on all revenue. "After recoupment" shares start once the advance is paid back. Leave the cap empty for no limit.';
+    document.getElementById('teamHint').textContent = '"' + firstLabel() + '" shares are paid on all revenue. "After recoupment" shares start once the advance is paid back. Leave the cap empty for no limit. Flat pay is a fixed amount on top of the share, paid once upfront or every month. Put the share at 0 for someone on flat pay only. Caps apply to the share, not to flat pay.';
     var r = DiobaEngine.compute(state);
+    var hasOnce = r.upfrontTotal > 0;
+    document.getElementById('recoupFlatWrap').hidden = !hasOnce;
+    document.getElementById('recoupFlat').checked = !!state.recoupFlat;
     var warn = document.getElementById('shareWarn');
     warn.textContent = r.totals.overAllocated ? 'Shares add up to ' + Math.round(r.totals.shareTotal * 100) + '%, which is more than 100%.' : '';
 
@@ -341,18 +363,31 @@
       .forEach(function (h, i) { hr.appendChild(el('th', i ? { class: 'num' } : {}, h)); });
     thead.appendChild(hr); t.appendChild(thead);
     var tb = el('tbody');
+    function cell(tr, text, cls, note) {
+      var td = el('td', cls ? { class: cls } : {}, text);
+      if (note) td.appendChild(el('small', {}, note));
+      tr.appendChild(td);
+    }
+    if (hasOnce) {
+      var ur = el('tr', { class: 'upfront' });
+      cell(ur, 'Upfront'); cell(ur, '\u2013', 'num'); cell(ur, '\u2013', 'num');
+      r.upfront.forEach(function (x) { cell(ur, x ? money(x) : '\u2013', 'num', x ? 'flat fee' : ''); });
+      cell(ur, money(-r.upfrontTotal), 'num studio', 'paid by studio');
+      tb.appendChild(ur);
+    }
     r.months.forEach(function (m) {
       var tr = el('tr');
-      [monthLabel(m.index), money(m.revenue), money(m.recouped)]
-        .concat(m.payouts.map(function (p) { return money(p.amount); })).concat([money(m.studio)])
-        .forEach(function (v, i, all) { tr.appendChild(el('td', i ? { class: 'num' + (i === all.length - 1 ? ' studio' : '') } : {}, v)); });
+      cell(tr, monthLabel(m.index)); cell(tr, money(m.revenue), 'num'); cell(tr, money(m.recouped), 'num');
+      m.payouts.forEach(function (p) { cell(tr, money(p.total), 'num', p.flat ? 'incl. ' + money(p.flat) + ' flat' : ''); });
+      cell(tr, money(m.studio), 'num studio');
       tb.appendChild(tr);
     });
     t.appendChild(tb);
     var tf = el('tfoot'), fr = el('tr');
     var recTotal = r.months.reduce(function (s, m) { return s + m.recouped; }, 0);
-    ['Total', money(r.totals.revenue), money(recTotal)].concat(r.totals.perPerson.map(money)).concat([money(r.totals.studio)])
-      .forEach(function (v, i) { fr.appendChild(el('td', i ? { class: 'num' } : {}, v)); });
+    cell(fr, 'Total'); cell(fr, money(r.totals.revenue), 'num'); cell(fr, money(recTotal), 'num');
+    r.totals.allPerPerson.forEach(function (x, i) { var f = r.totals.flatPerPerson[i]; cell(fr, money(x), 'num', f ? 'incl. ' + money(f) + ' flat' : ''); });
+    cell(fr, money(r.totals.studio), 'num');
     tf.appendChild(fr); t.appendChild(tf);
 
     renderStatementPickers(r);
@@ -380,8 +415,12 @@
     brand.appendChild(wm); brand.appendChild(el('span', { class: 'small' }, monthLabel(mi)));
     box.appendChild(brand);
     box.appendChild(el('h3', {}, 'Revenue-share statement, ' + monthLabel(mi)));
-    var who = personName(p, pi) + (p.role ? ', ' + p.role : '') + ', ' + +(p.share * 100).toFixed(2) + '% ' +
-              (p.starts === 'after' ? 'after recoupment' : firstLabel().toLowerCase());
+    var hasShare = (+p.share || 0) > 0, flatAmt = +p.flat || 0, monthlyFlat = p.flatWhen === 'monthly' && flatAmt > 0, onceFlat = p.flatWhen !== 'monthly' && flatAmt > 0;
+    var terms = [];
+    if (hasShare) terms.push(+(p.share * 100).toFixed(2) + '% ' + (p.starts === 'after' ? 'after recoupment' : firstLabel().toLowerCase()));
+    if (monthlyFlat) terms.push(money(flatAmt) + ' flat pay every month');
+    if (onceFlat) terms.push(money(flatAmt) + ' one-time flat fee');
+    var who = personName(p, pi) + (p.role ? ', ' + p.role : '') + (terms.length ? ', ' + terms.join(' + ') : '');
     box.appendChild(el('p', { class: 'who' }, who));
 
     // Where this month's money went
@@ -402,14 +441,20 @@
       box.appendChild(el('p', { class: 'st-split-key' }, 'Where this month\'s ' + money(m.revenue) + ' went: ' + parts.map(function (q) { return q[0].toLowerCase() + ' ' + money(q[1]); }).join(', ') + '.'));
     }
 
-    var rows = [
-      ['Revenue received this month', money(m.revenue)],
-      ['Your share is calculated on', money(po.base)],
-      ['Payable to you this month', money(po.amount), 'pay'],
-      ['Paid to you so far', money(po.paidSoFar)],
-      ['Cap left', po.capLeft === null ? 'No cap' : money(po.capLeft)],
-      ['Advance still to recoup', money(m.leftToRecoup)]
-    ];
+    var rows = [['Revenue received this month', money(m.revenue)]];
+    if (hasShare) {
+      rows.push(['Your share is calculated on', money(po.base)]);
+      rows.push([monthlyFlat ? 'Your share this month' : 'Payable to you this month', money(po.amount), monthlyFlat ? '' : 'pay']);
+    }
+    if (monthlyFlat) {
+      rows.push(['Flat pay this month', money(po.flat)]);
+      rows.push(['Payable to you this month', money(po.total), 'pay']);
+    }
+    if (!hasShare && !monthlyFlat) rows.push(['Payable to you this month', money(po.total), 'pay']);
+    if (onceFlat) rows.push(['One-time flat fee (paid upfront)', money(flatAmt)]);
+    rows.push([(monthlyFlat || onceFlat) ? 'Paid to you so far, including flat pay' : 'Paid to you so far', money(po.paidSoFar)]);
+    if (hasShare) rows.push(['Cap left', po.capLeft === null ? 'No cap' : money(po.capLeft)]);
+    rows.push(['Advance still to recoup', money(m.leftToRecoup)]);
     rows.forEach(function (row) {
       var d = el('div', { class: 'statement-row' + (row[2] ? ' ' + row[2] : '') });
       d.appendChild(el('span', {}, row[0])); d.appendChild(el('span', {}, row[1])); box.appendChild(d);
@@ -419,9 +464,18 @@
 
   function csv() {
     var r = DiobaEngine.compute(state);
-    var lines = [['Month', 'Revenue', 'Recouped', 'Available to split'].concat(r.team.map(personName)).concat(['Left for studio'])];
+    var head = ['Month', 'Revenue', 'Recouped', 'Available to split'];
+    r.team.forEach(function (p, i) { head.push(personName(p, i) + ' share', personName(p, i) + ' flat pay', personName(p, i) + ' total'); });
+    var lines = [head.concat(['Left for studio'])];
+    if (r.upfrontTotal > 0) {
+      var up = ['Upfront', '', '', ''];
+      r.upfront.forEach(function (x) { up.push(0, x, x); });
+      lines.push(up.concat([-r.upfrontTotal]));
+    }
     r.months.forEach(function (m) {
-      lines.push([monthLabel(m.index), m.revenue, m.recouped, m.available].concat(m.payouts.map(function (p) { return p.amount; })).concat([m.studio]));
+      var row = [monthLabel(m.index), m.revenue, m.recouped, m.available];
+      m.payouts.forEach(function (p) { row.push(p.amount, p.flat, p.total); });
+      lines.push(row.concat([m.studio]));
     });
     var text = lines.map(function (l) { return l.map(function (c) { var s = String(c); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }).join(','); }).join('\n');
     var a = el('a', { href: URL.createObjectURL(new Blob([text], { type: 'text/csv' })), download: 'dioba-payouts.csv' });
@@ -431,7 +485,8 @@
   document.getElementById('advance').oninput = function (e) { state.advance = parseFloat(e.target.value) || 0; update(); };
   document.getElementById('currency').onchange = function (e) { state.currency = e.target.value; renderInputs(); update(); };
   document.getElementById('startMonth').oninput = function (e) { state.startMonth = e.target.value; renderMonths(); update(); };
-  document.getElementById('addPerson').onclick = function () { state.team.push({ name: '', role: '', share: 0, starts: 'after', cap: null }); renderInputs(); update(); };
+  document.getElementById('addPerson').onclick = function () { state.team.push({ name: '', role: '', share: 0, starts: 'after', cap: null, flat: null, flatWhen: 'once' }); renderInputs(); update(); };
+  document.getElementById('recoupFlat').onchange = function (e) { state.recoupFlat = e.target.checked; update(); };
   document.getElementById('addMonth').onclick = function () { state.revenue.push(0); renderMonths(); update(); };
   document.getElementById('removeMonth').onclick = function () { if (state.revenue.length > 1) { state.revenue.pop(); renderMonths(); update(); } };
   document.getElementById('loadExample').onclick = function () { undoState = JSON.parse(JSON.stringify(state)); state = DiobaEngine.exampleInput(); renderInputs(); update(); setStatus('Example loaded.', true); };
